@@ -36,9 +36,19 @@ def scrap_odds(event_link, market_name, driver, event_path, date_scraping):
                 bookmaker = tds[0].text
                 if bookmaker in BOOKMAKERS_SCRAP:
                     odds = tr.find_all(attrs={'class': 'table-main__detail-odds'})
+
                     odd_home = odds[0]
+                    last_odd_home = odd_home['data-odd']
+                    date_last_odd_home = odd_home['data-created']
+
                     odd_draw = odds[1]
+                    last_odd_draw = odd_draw['data-odd']
+                    date_last_odd_draw = odd_draw['data-created']
+
                     odd_away = odds[2]
+                    last_odd_away = odd_away['data-odd']
+                    date_last_odd_away = odd_away['data-created']
+
                     try:
                         data_bid_home = odd_home['data-bid']
                         data_oid_home = odd_home['data-oid']
@@ -80,7 +90,7 @@ def get_archive_odds(event_link, archive_odds_url):
                                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                                                   '(KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36'
                                 }).json()
-
+    #
     print(archive_odds)
-    print(archive_odds[-1])
+    # print(archive_odds[-1])
 
