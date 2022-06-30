@@ -14,6 +14,7 @@ from selenium.webdriver.common.by import By
 def scrap_odds(event_link, market_name, driver, event_path, date_scraping):
     driver.get(event_link)
     driver.refresh()
+    time.sleep(2)
     soup = None
 
     try:
@@ -69,15 +70,24 @@ def scrap_odds(event_link, market_name, driver, event_path, date_scraping):
                         
                     if (data_bid_home and data_oid_home) != '':
                         archive_odds_home_url = ARCHIVE_ODDS_URL + data_oid_home + '/' + data_bid_home
-                        get_archive_odds(event_link, archive_odds_home_url)
+                        archive_odds = get_archive_odds(event_link, archive_odds_home_url)
+                        print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
+                        for odds in archive_odds:
+                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event_path}")
 
-                    # if (data_bid_draw and data_oid_draw) is not '':
-                    #     archive_odds_draw_url = ARCHIVE_ODDS_URL + data_oid_draw + '/' + data_bid_draw
-                    #     # print(archive_odds_draw_url)
-                    #
-                    # if (data_bid_away and data_oid_away) is not '':
-                    #     archive_odds_away_url = ARCHIVE_ODDS_URL + data_oid_away + '/' + data_bid_away
-                    #     # print(archive_odds_away_url)
+                    if (data_bid_draw and data_oid_draw) != '':
+                        archive_odds_draw_url = ARCHIVE_ODDS_URL + data_oid_draw + '/' + data_bid_draw
+                        archive_odds = get_archive_odds(event_link, archive_odds_draw_url)
+                        print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
+                        for odds in archive_odds:
+                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event_path}")
+
+                    if (data_bid_away and data_oid_away) != '':
+                        archive_odds_away_url = ARCHIVE_ODDS_URL + data_oid_away + '/' + data_bid_away
+                        archive_odds = get_archive_odds(event_link, archive_odds_away_url)
+                        print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
+                        for odds in archive_odds:
+                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event_path}")
 
     return r
 
@@ -90,7 +100,5 @@ def get_archive_odds(event_link, archive_odds_url):
                                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                                                   '(KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36'
                                 }).json()
-    #
-    print(archive_odds)
-    # print(archive_odds[-1])
 
+    return archive_odds
