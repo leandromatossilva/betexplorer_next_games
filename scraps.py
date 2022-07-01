@@ -1,4 +1,5 @@
 import time
+import winsound
 import requests
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -120,13 +121,21 @@ def scrap_odds(event, market_name, driver, date_scraping, url):
 
 def get_archive_odds(event_link, archive_odds_url):
     URL_API = archive_odds_url
-    archive_odds = requests.get(URL_API,
-                                headers={
-                                    'referer': event_link,
-                                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                                                  '(KHTML, like Gecko) Chrome/103.0.5060.66 Safari/537.36'
-                                }).json()
-    time.sleep(5)
+    while True:
+        try:
+            archive_odds = requests.get(URL_API,
+                                        headers={
+                                            'referer': event_link,
+                                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+                                                          '(KHTML, like Gecko) Chrome/103.0.5060.66 Safari/537.36'
+                                        }).json()
+            break
+        except requests.exceptions.ConnectionError:
+            duration = 1000
+            freq = 6000
+            winsound.Beep(freq, duration)
+            time.sleep(2)
+
     return archive_odds
 
 
