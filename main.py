@@ -32,6 +32,8 @@ for SET in LEAGUES_SCRAP:
     for league in SET['leagues']:
         URL = BASE_URL + SET['country'] + '/' + league
 
+        event = {'league': league, 'country': SET['country'], 'fin': False}
+
         page = requests.get(
             URL,
             headers={
@@ -46,26 +48,29 @@ for SET in LEAGUES_SCRAP:
         table = bsoup.find('table', attrs={'class': 'table-main'})
         trs = table.find_all('tr')
 
+        event['season'] = bsoup.find('h1', attrs={'class': 'wrap-section__header__title'})\
+            .find('span', attrs={'class': 'tablet-desktop-only'}).text.split(' ')[-1]
+
         for tr in trs:
             links = tr.find_all('a')
             if not links:
                 continue
             else:
-                event_path = (links[0]['href']).split('/')[-2]
-                event_link = HOME_URL + links[0]['href']
+                event['path'] = (links[0]['href']).split('/')[-2]
+                event['link'] = HOME_URL + links[0]['href']
                 tds = tr.find_all('td')
                 if tds:
-                    home_team = tds[1].text.split(' - ')[0]
-                    away_team = tds[1].text.split(' - ')[1]
+                    event['home_team'] = tds[1].text.split(' - ')[0]
+                    event['away_team'] = tds[1].text.split(' - ')[1]
                     print(tds[1].text)
 
-                    URL_DOUBLE_CHANCE = event_link + "#dc"
-                    URL_BOTH_TEAMS_SCORE = event_link + "#bts"
-                    URL_OVER_UNDER = event_link + "#ou"
-                    URL_ASIAN_HAND = event_link + "#ah"
+                    URL_DOUBLE_CHANCE = event['link'] + "#dc"
+                    URL_BOTH_TEAMS_SCORE = event['link'] + "#bts"
+                    URL_OVER_UNDER = event['link'] + "#ou"
+                    URL_ASIAN_HAND = event['link'] + "#ah"
 
-                r = scraps.scrap_odds(event_link, '1X2', driver, event_path, date_scraping)
+                r = scraps.scrap_odds(event, '1X2', driver, date_scraping)
                 while r is False:
                     print('r is false')
-                    r = scraps.scrap_odds(event_link, '1X2', driver, event_path, date_scraping)
+                    r = scraps.scrap_odds(event, '1X2', driver, date_scraping)
 

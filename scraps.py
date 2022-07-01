@@ -1,19 +1,16 @@
 import time
 import requests
-from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 from constants import BOOKMAKERS_SCRAP, ARCHIVE_ODDS_URL
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-from selenium.webdriver.common.by import By
 
 
-def scrap_odds(event_link, market_name, driver, event_path, date_scraping):
-    driver.get(event_link)
-    driver.refresh()
+def scrap_odds(event, market_name, driver, date_scraping):
+    driver.get(event['link'])
+    # driver.refresh()
     time.sleep(2)
     soup = None
 
@@ -29,6 +26,8 @@ def scrap_odds(event_link, market_name, driver, event_path, date_scraping):
             r = False
 
     if soup:
+        event['match_date_time'] = (datetime.strptime(get_match_date(soup), '%d.%m.%Y - %H:%M') - timedelta(hours=5))
+        print(f"{event['path']} | {event['home_team']} | {event['away_team']} | {event['match_date_time']} | {event['season']} | {event['league']} | {event['country']} | {date_scraping}")
         table = soup.find('table', attrs={'id': 'sortable-1'})
         if table is not None:
             trs = table.find('tbody').find_all('tr')
@@ -51,43 +50,61 @@ def scrap_odds(event_link, market_name, driver, event_path, date_scraping):
                     date_last_odd_away = odd_away['data-created']
 
                     try:
-                        data_bid_home = odd_home['data-bid']
+                        # hasattr(odd_home, 'data-bid')
+                        # hasattr(odd_home, 'data-oid')
                         data_oid_home = odd_home['data-oid']
+                        data_bid_home = odd_home['data-bid']
                     except KeyError:
+                        print('Except')
                         data_oid_home = data_bid_home = ''
-                        
+                        # odd_home['data-oid'] = odd_home['data-bid'] = None
+
                     try:
-                        data_bid_draw = odd_draw['data-bid']
+                        # hasattr(odd_draw, 'data-bid')
+                        # hasattr(odd_draw, 'data-oid')
                         data_oid_draw = odd_draw['data-oid']
+                        data_bid_draw = odd_draw['data-bid']
                     except KeyError:
+                        print('Except')
                         data_oid_draw = data_bid_draw = ''
-                        
+                        # odd_draw['data-oid'] = odd_draw['data-bid'] = None
+
                     try:
-                        data_bid_away = odd_away['data-bid']
+                        # hasattr(odd_away, 'data-bid')
+                        # hasattr(odd_away, 'data-oid')
                         data_oid_away = odd_away['data-oid']
+                        data_bid_away = odd_away['data-bid']
                     except KeyError:
+                        print('Except')
                         data_oid_away = data_bid_away = ''
+                        # odd_away['data-oid'] = odd_away['data-bid'] = None
                         
-                    if (data_bid_home and data_oid_home) != '':
+                    if (data_oid_home and data_bid_home) != '':
                         archive_odds_home_url = ARCHIVE_ODDS_URL + data_oid_home + '/' + data_bid_home
-                        archive_odds = get_archive_odds(event_link, archive_odds_home_url)
-                        print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
-                        for odds in archive_odds:
-                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event_path}")
+                        archive_odds = get_archive_odds(event['link'], archive_odds_home_url)
+                        # print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
+                        for idx, odds in enumerate(archive_odds):
+                            if idx == 0:
+                                last_odd_home_change = round(float(last_odd_home) - float(odds['odd']), 2)
+                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event['path']}")
 
-                    if (data_bid_draw and data_oid_draw) != '':
+                    if (data_oid_draw and data_bid_draw) != '':
                         archive_odds_draw_url = ARCHIVE_ODDS_URL + data_oid_draw + '/' + data_bid_draw
-                        archive_odds = get_archive_odds(event_link, archive_odds_draw_url)
-                        print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
-                        for odds in archive_odds:
-                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event_path}")
+                        archive_odds = get_archive_odds(event['link'], archive_odds_draw_url)
+                        # print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
+                        for idx, odds in enumerate(archive_odds):
+                            if idx == 0:
+                                last_odd_draw_change = round(float(last_odd_draw) - float(odds['odd']), 2)
+                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event['path']}")
 
-                    if (data_bid_away and data_oid_away) != '':
+                    if (data_oid_away and data_bid_away) != '':
                         archive_odds_away_url = ARCHIVE_ODDS_URL + data_oid_away + '/' + data_bid_away
-                        archive_odds = get_archive_odds(event_link, archive_odds_away_url)
-                        print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
-                        for odds in archive_odds:
-                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event_path}")
+                        archive_odds = get_archive_odds(event['link'], archive_odds_away_url)
+                        # print('BOOKMAKER | ODD DATE | ODD | VARIACAO | EVENT')
+                        for idx, odds in enumerate(archive_odds):
+                            if idx == 0:
+                                last_odd_away_change = round(float(last_odd_away) - float(odds['odd']), 2)
+                            print(f"{bookmaker} | {odds['date']} | {odds['odd']} | {odds['change']} | {event['path']}")
 
     return r
 
@@ -102,3 +119,21 @@ def get_archive_odds(event_link, archive_odds_url):
                                 }).json()
 
     return archive_odds
+
+
+def get_match_date(soup):
+    match_date = soup.find('div', attrs={'class': 'wrap-page__in'}).find('p', attrs={'id': 'match-date'}).text
+
+    return match_date
+
+
+def format_to_date(date_betexplorer, timezone):
+    try:
+        datetime_obj = datetime.strptime(date_betexplorer, '%d,%m,%Y,%H,%M')
+        data_hora_brasil = datetime_obj - timedelta(hours=timezone)
+
+        return data_hora_brasil
+
+    except TypeError as error:
+        print("Error: ", error)
+
