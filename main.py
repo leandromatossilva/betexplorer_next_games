@@ -22,7 +22,7 @@ date_scraping = datetime.date.today()
 
 
 options = Options()
-options.binary_location = "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
+# options.binary_location = "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe"
 driver = webdriver.Chrome(options=options, executable_path="C:\\Users\\leandro.silva\\Documents\\chromedriver.exe")
 cookies = {
     "my_timezone": "-4"
@@ -57,7 +57,7 @@ for SET in LEAGUES_SCRAP:
                 continue
             else:
                 event['path'] = (links[0]['href']).split('/')[-2]
-                event['link'] = HOME_URL + links[0]['href']
+                event['link'] = URL_1X2 = HOME_URL + links[0]['href']
                 tds = tr.find_all('td')
                 if tds:
                     event['home_team'] = tds[1].text.split(' - ')[0]
@@ -69,8 +69,16 @@ for SET in LEAGUES_SCRAP:
                     URL_OVER_UNDER = event['link'] + "#ou"
                     URL_ASIAN_HAND = event['link'] + "#ah"
 
-                r = scraps.scrap_odds(event, '1X2', driver, date_scraping)
+                print("1X2")
+                r = scraps.scrap_odds(event, '1X2', driver, date_scraping, URL_1X2)
                 while r is False:
                     print('r is false')
-                    r = scraps.scrap_odds(event, '1X2', driver, date_scraping)
+                    r = scraps.scrap_odds(event, '1X2', driver, date_scraping, URL_1X2)
+
+                print("DOUBLE_CHANCE")
+                r = scraps.scrap_odds(event, '1X2', driver, date_scraping, URL_DOUBLE_CHANCE)
+                while r is False:
+                    print('r is false')
+                    r = scraps.scrap_odds(event, '1X2', driver, date_scraping, URL_DOUBLE_CHANCE)
+
 

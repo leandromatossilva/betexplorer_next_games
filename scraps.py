@@ -8,10 +8,10 @@ from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
 
-def scrap_odds(event, market_name, driver, date_scraping):
-    driver.get(event['link'])
-    # driver.refresh()
-    time.sleep(2)
+def scrap_odds(event, market_name, driver, date_scraping, url):
+    driver.get(url)
+    driver.refresh()
+    time.sleep(3)
     soup = None
 
     try:
@@ -26,8 +26,8 @@ def scrap_odds(event, market_name, driver, date_scraping):
             r = False
 
     if soup:
-        event['match_date_time'] = (datetime.strptime(get_match_date(soup), '%d.%m.%Y - %H:%M') - timedelta(hours=5))
-        print(f"{event['path']} | {event['home_team']} | {event['away_team']} | {event['match_date_time']} | {event['season']} | {event['league']} | {event['country']} | {date_scraping}")
+        # event['match_date_time'] = (datetime.strptime(get_match_date(soup), '%d.%m.%Y - %H:%M') - timedelta(hours=5))
+        # print(f"{event['path']} | {event['home_team']} | {event['away_team']} | {event['match_date_time']} | {event['season']} | {event['league']} | {event['country']} | {date_scraping}")
         table = soup.find('table', attrs={'id': 'sortable-1'})
         if table is not None:
             trs = table.find('tbody').find_all('tr')
@@ -37,17 +37,26 @@ def scrap_odds(event, market_name, driver, date_scraping):
                 if bookmaker in BOOKMAKERS_SCRAP:
                     odds = tr.find_all(attrs={'class': 'table-main__detail-odds'})
 
-                    odd_home = odds[0]
-                    last_odd_home = odd_home['data-odd']
-                    date_last_odd_home = odd_home['data-created']
-
-                    odd_draw = odds[1]
-                    last_odd_draw = odd_draw['data-odd']
-                    date_last_odd_draw = odd_draw['data-created']
-
-                    odd_away = odds[2]
-                    last_odd_away = odd_away['data-odd']
-                    date_last_odd_away = odd_away['data-created']
+                    try:    
+                        odd_home = odds[0]
+                        last_odd_home = odd_home['data-odd']
+                        date_last_odd_home = odd_home['data-created']
+                    except:
+                        odd_home = {}
+                        
+                    try:    
+                        odd_draw = odds[1]
+                        last_odd_draw = odd_draw['data-odd']
+                        date_last_odd_draw = odd_draw['data-created']
+                    except:
+                        odd_draw = {}
+                        
+                    try:    
+                        odd_away = odds[2]
+                        last_odd_away = odd_away['data-odd']
+                        date_last_odd_away = odd_away['data-created']
+                    except:
+                        odd_away = {}
 
                     try:
                         # hasattr(odd_home, 'data-bid')
@@ -78,7 +87,7 @@ def scrap_odds(event, market_name, driver, date_scraping):
                         print('Except')
                         data_oid_away = data_bid_away = ''
                         # odd_away['data-oid'] = odd_away['data-bid'] = None
-                        
+
                     if (data_oid_home and data_bid_home) != '':
                         archive_odds_home_url = ARCHIVE_ODDS_URL + data_oid_home + '/' + data_bid_home
                         archive_odds = get_archive_odds(event['link'], archive_odds_home_url)
@@ -115,9 +124,9 @@ def get_archive_odds(event_link, archive_odds_url):
                                 headers={
                                     'referer': event_link,
                                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                                                  '(KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36'
+                                                  '(KHTML, like Gecko) Chrome/103.0.5060.66 Safari/537.36'
                                 }).json()
-
+    time.sleep(5)
     return archive_odds
 
 
